@@ -23,9 +23,12 @@ const MyListings = () => {
   const [showCredentialSubmission, setShowCredentialSubmission] = useState(null)
   const [showWithdrawal, setShowWithdrawal] = useState(null)
 
-  const totalValue = userListings.reduce((sum,listing)=>sum + (listing.price || 0), 0);
-  const activeListings = userListings.filter((listing)=>listing.status === 'active').length;
-  const soldListings = userListings.filter((listing)=>listing.status === 'sold').length;
+  // Safety check: ensure userListings is an array
+  const safeUserListings = Array.isArray(userListings) ? userListings : []
+
+  const totalValue = safeUserListings.reduce((sum,listing)=>sum + (listing.price || 0), 0);
+  const activeListings = safeUserListings.filter((listing)=>listing.status === 'active').length;
+  const soldListings = safeUserListings.filter((listing)=>listing.status === 'sold').length;
 
   const formatNumber = (num)=> {
     if(num >= 1000000) return (num/1000000).toFixed(1) + "M";
@@ -80,7 +83,7 @@ const MyListings = () => {
 
   const deleteListing = async (listingId) => {
     try {
-      const confirm = window.confirm('Are you sure you want to delete this listing? iif credentials are changeed, new credetials will be sent to your email')
+      const confirm = window.confirm('Are you sure you want to delete this listing? If credentials are changed, new credentials will be sent to your email')
       
       if(!confirm) return;
       toast.loading('Deleting listing...')
@@ -125,7 +128,7 @@ const MyListings = () => {
       </div>
       {/* stats */}
       <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-8'>
-        <StatCard title='Total Listings' value={userListings.length} icon={<Eye 
+        <StatCard title='Total Listings' value={safeUserListings.length} icon={<Eye 
         className='size-6 text-indigo-600' />} color='indigo' />
 
         <StatCard title='Active Listings' value={activeListings} icon={<CheckCircle 
@@ -140,9 +143,9 @@ const MyListings = () => {
           {/* Balance Section */}
           <div className='flex flex-col sm:flex-row justify-between gap-4 xl:gap-20 p-6 mb-10 bg-white rounded-xl border border-gray-200'>
             {[
-              {label: 'Earned', value: balance.earned, icon: WalletIcon},
-              {label: 'Withdrawn', value: balance.withdrawn, icon: ArrowDownCircleIcon},
-              {label: 'Available', value: balance.available, icon: CoinsIcon},
+              {label: 'Earned', value: balance?.earned || 0, icon: WalletIcon},
+              {label: 'Withdrawn', value: balance?.withdrawn || 0, icon: ArrowDownCircleIcon},
+              {label: 'Available', value: balance?.available || 0, icon: CoinsIcon},
             ].map((item,index)=>(
               <div onClick={()=>item.label === "Available" && setShowWithdrawal(true)} key={index} className='flex flex-1 items-center justify-between p-4 rounded-lg border border-gray-100 cursor-pointer'>
                   <div className='flex items-center gap-3'>
@@ -157,18 +160,18 @@ const MyListings = () => {
             ))}
           </div>
           {/* Listings */}
-              {userListings.length === 0 ? (
+              {safeUserListings.length === 0 ? (
                 <div className='bg-white rounded-lg border border-gray-200 p-16 text-center'>
                   <div className='w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4'>
                       <Plus className='w-8 h-8 text-gray-400' />
                   </div>
                   <h3 className='text-xl font-medium text-gray-800 mb-2'>No listings yet</h3>
-                  <p className="text-gray-600 mb-6">Start by Creating your first listing</p>
+                  <p className="text-gray-600 mb-6">Start by creating your first listing</p>
                   <button onClick={()=> navigate("/create-listing")} className='bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium'>Create first listing</button>
                 </div>
               ) : (
                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                    {userListings.map((listing)=>(
+                    {safeUserListings.map((listing)=>(
                       <div key={listing.id} className='bg-white rounded-lg border border-gray-200 hover:shadow-lg shadow-gray-200/70 transition-shadow'>
                         <div className='p-6'>
                             <div className='flex items-start gap-4 justify-between mb-4'>
