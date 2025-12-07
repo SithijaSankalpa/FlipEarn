@@ -3,18 +3,29 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import ListingDetailsModal from '../../components/admin/ListingDetailsModal';
 import { Loader2Icon } from 'lucide-react';
-import { dummyOrders } from '../../assets/assets';
+import toast from 'react-hot-toast';
+import { useAuth } from '@clerk/clerk-react';
+import api from '../../configs/axios';
+
 
 const Transactions = () => {
+    const {getToken} = useAuth()
     const currency = import.meta.env.VITE_CURRENCY || '$';
 
-    const [trasactions, setTransactions] = useState([]);
+    const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(null);
 
     const getTransactions = async () => {
-        setTransactions(dummyOrders);
-        setLoading(false);
+        try {
+            const token = await getToken();
+            const {data} = await api.get('/api/admin/transactions', {headers: {Authorization: `Bearer ${token}`}})
+            setTransactions(data.transactions)
+            setLoading(false)
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+            console.log(error);
+        }
     };
 
     useEffect(() => {
@@ -42,7 +53,7 @@ const Transactions = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {trasactions.map((t, index) => (
+                        {transactions.map((t, index) => (
                             <tr key={index} className='border-t border-gray-200 hover:bg-indigo-50/50'>
                                 <td className='pl-4 py-3'>{index + 1}.</td>
                                 <td className='px-4 py-3'>@{t.listing.username}</td>

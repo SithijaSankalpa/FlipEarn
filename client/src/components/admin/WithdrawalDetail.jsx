@@ -1,5 +1,7 @@
 import toast from 'react-hot-toast';
 import { XIcon, CopyIcon } from 'lucide-react';
+import api from '../../configs/axios';
+import { data } from 'react-router-dom';
 
 const WithdrawalDetail = ({ data, onClose }) => {
     const currency = import.meta.env.VITE_CURRENCY || '$';
@@ -10,7 +12,18 @@ const WithdrawalDetail = ({ data, onClose }) => {
     };
 
     const markAsWithdrawn = async () => {
-        
+        try {
+            toast.loading('Processing...');
+            const token = await getToken();
+            const {data} = await api.put(`/api/admin/withdrawal-mark${data.id}`,{}, {headers: {Authorization: `Bearer ${token}`}})
+            toast.dismissAll();
+            toast.success(resizeBy.data.message);
+            onClose();
+        } catch (error) {
+             toast.dismissAll();
+             toast.error(error?.response?.data?.message || error.message);
+             console.log(error);
+        }
     };
 
     return (

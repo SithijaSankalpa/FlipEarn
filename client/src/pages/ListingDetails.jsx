@@ -4,12 +4,17 @@ import { getProfileLink, platformIcons } from '../assets/assets';
 import { useDispatch, useSelector } from 'react-redux';
 import { ArrowLeftIcon, ArrowUpRightFromSquare, Calendar, CheckCircle2, ChevronLeftIcon, ChevronRightIcon, DollarSign, Eye, LineChart, Loader2Icon, MapPin, MessageSquareMoreIcon, ShoppingBagIcon, Users } from 'lucide-react';
 import { setChat } from '../app/features/chatSlice';
+import { useAuth, useClerk, useUser } from '@clerk/clerk-react';
+import toast from 'react-hot-toast';
+import api from '../configs/axios';
 
 
 const ListingDetails = () => {
 
+  const {user, isLoaded} = useUser()
   const dispatch = useDispatch()
-
+  const {getToken} = useAuth()
+  const {openSignIn} = useClerk();
   const navigate = useNavigate()
   const currency = import.meta.env.VITE_CURRENCY || '$';
   const [listing, setListing] = useState(null)
@@ -25,10 +30,25 @@ const ListingDetails = () => {
   const nextSlide = ()=> setCurrent((prev)=> (prev === images.length - 1 ? 0 : prev + 1))
 
   const purchaseAccount = async () => {
-    
+    try {
+      if(!user){
+        return openSignIn()
+      }
+      toast.loading('creating payment link...')
+      const token = await getToken()
+      const {data} = await api.get(`/api/listing/purchase-account/${listing.id}`, {headers: {Authorization: `Bearer ${token}`}})
+      toast.dismissAll();
+      window.location.href = data.paymentLink;
+    } catch (error) {
+      toast.dismissAll();
+      toast.error(error?.response?.data?.message || error.message);
+      console.log(error);
+    }
   }
 
   const loadChatbox = () => {
+    if(!isLoaded || !user) return toast("Please login to chat with seller")
+      if(user.id === listing.ownerId) return toast("You can't chat with your own listing")
     dispatch(setChat({listing: listing}))
   }
 
@@ -140,7 +160,7 @@ const ListingDetails = () => {
                         <div>
                           <Eye className='mx-auto text-gray-400 w-5 h-5 mb-1'/>
                           <p className='font-semibold text-gray-800'>
-                            {listing.monthly_views?.toLocaleString}
+                            {listing.monthly_views?.toLocaleString()}
                           </p>
                           <p className='text-xs text-gray-500'>Monthly Views</p>
                         </div>
@@ -180,11 +200,11 @@ const ListingDetails = () => {
                         </div>
                         <div>
                           <p className='text-gray-500'>Platform Verified</p>
-                          <p className='font-medium'>{listing.platformAssured ? "Yes" : "No"}</p>
+                          <p className='font-medium'>{listing.verified ? "Yes" : "No"}</p>  
                         </div>
                         <div>
-                          <p className='text-gray-500'>Monitization</p>
-                          <p className='font-medium'>{listing.monitized ? "Enabled" : "Disabled"}</p>
+                          <p className='text-gray-500'>Monetization</p>
+                          <p className='font-medium'>{listing.monetized ? "Enabled" : "Disabled"}</p>
                         </div>
                         <div>
                           <p className='text-gray-500'>Status</p>
@@ -196,7 +216,7 @@ const ListingDetails = () => {
               {/*Seller info & Purchase options*/}  
               <div className='bg-white min-w-full md:min-w-[370px] rounded-xl border border-gray-200 p-5 max-md:mb-10'>
                 <h4 className='font-semibold text-gray-800 mb-4'>Seller Information</h4>
-                <div className='flex- items-center gap-3 mb-2'>
+                <div className='flex items-center gap-3 mb-2'>
                     <img src={listing.owner?.image} alt="seller image" className='size-10 rounded-full'/>
                     <div>
                       <p className='font-medium text-gray-800'>{listing.owner?.name}</p>

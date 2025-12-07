@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-hot-toast'
 import { Loader2Icon, Upload } from 'lucide-react'
+import { useAuth } from '@clerk/clerk-react'
+import { getAllpublicListing, getAllUserListings } from '../app/features/listingSlice'
+import api from '../configs/axios'
 
 const ManageListing = () => {
 
 const {id} = useParams()
 const navigate = useNavigate()
 const {userListings} = useSelector((state) =>state.listing)
+
+const {getToken} = useAuth()
+const dispatch = useDispatch()
 
 const [loadingListing, setLoadingListing] = useState(false)
 const [isEditing, setIsEditing] = useState(false) 
@@ -70,7 +76,45 @@ useEffect(()=>{
 
 const handleSubmit = async (e) => {
 	e.preventDefault();
-	
+	toast.loading('Saving...')
+	const dataCopy = structuredClone(formData)
+	try {
+		if(isEditing){
+			dataCopy.images = formData.images.filter((image)=>typeof image === "string")
+			const formDataInstance = new FormData()
+			formDataInstance.append('accountDetails', JSON.stringify(dataCopy))
+			formData.images.filter((image) => typeof image !== 'string').forEach((image)=>{
+				formDataInstance.append('images', image)
+			})
+
+			const token = await getToken()
+
+			const {data} = await api.put('/api/listing', formDataInstance, {headers: {Authorization: `Bearer ${token}`}})
+			toast.dismissAll()
+			toast.success(data.message)
+			dispatch(getAllUserListings({getToken}))
+			dispatch(getAllpublicListing())
+			navigate('/my-listings')
+		} else {
+			delete dataCopy.images;
+			const formDataInstance = new FormData();
+			formDataInstance.append('accountDetails', JSON.stringify(dataCopy));
+			formData.images.forEach((image)=>{
+				formDataInstance.append('images', image)
+			})
+
+			const token = await getToken()
+			const {data} = await api.post('/api/listing', formDataInstance, {headers: {Authorization: `Bearer ${token}`}})
+			toast.dismissAll();
+			toast.success(data.message);
+			dispatch(getAllUserListings({getToken}))
+			dispatch(getAllpublicListing())
+			navigate('/my-listings')
+		}
+	} catch (error) {
+		toast.dismissAll();
+		toast.error(error?.response?.data?.message || error.message);
+	}
 };
 
 if(loadingListing){
@@ -119,7 +163,7 @@ return (
         <Section title='Account Metrics'> 
           <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-6'>
             <InputField label='Followers Count *' type='number' min={0} value= {formData.followers_count} placeholder='10000' onChange={(v) => handleInputChange('followers_count', v)} required={true}/>
-          <InputField label='Engagement Rate (%)' type='number' min={0} max= {100} value={formData.engagement_rate} placeholder='4' onChange={(v) => handleInputChange('engagement _rate',v)}/>
+          <InputField label='Engagement Rate (%)' type='number' min={0} max= {100} value={formData.engagement_rate} placeholder='4' onChange={(v) => handleInputChange('engagement_rate',v)}/>
           <InputField label='Monthly Views/Impressions' type='number' min={0} value={formData.monthly_views} placeholder='100000' onChange={(v) => handleInputChange('monthly_views', v)}/>
           </div>
        
@@ -134,7 +178,7 @@ return (
         </Section>
 				{/* Pricing */}
 				<Section title='Pricing & Description'>
-				<InputField label='Asking Price (USD) *' type='number' moin={0} value={formData.price} placeholder='2500.00' onChange={(v) => handleInputChange('price', v)} required={true}/>
+				<InputField label='Asking Price (USD) *' type='number' min={0} value={formData.price} placeholder='2500.00' onChange={(v) => handleInputChange('price', v)} required={true}/>
 					<TextareaField label='Description *' value={formData.description} onChange={(v) => handleInputChange('description',v)} required={true} />
 				</Section>
 				{/* Images */}
@@ -221,7 +265,7 @@ const SelectField = ({label, options, value, onChange, required = false})=>(
     <div>
       	<label className='block text-sm font-medium text-gray-700 mb-2'>{label}</label>
         <select value={value} onChange={(e) =>onChange(e.target.value)}
-          className='w-full px-3 py-1.5 text-gray-600 border rounded-mo focus:outline-none focus:ring-2 focus:ring-indigo-500 border-gray-300' required={required}>
+          className='w-full px-3 py-1.5 text-gray-600 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 border-gray-300' required={required}>
             <option value=''>Select...</option>
             {options.map((opt)=>(
             <option key={opt} value={opt}>{opt}</option>

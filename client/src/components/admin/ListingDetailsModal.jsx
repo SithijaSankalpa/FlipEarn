@@ -1,8 +1,10 @@
+import { useAuth } from "@clerk/clerk-react";
 import { XIcon, CheckCircleIcon, BadgeInfoIcon, GlobeIcon, UserIcon } from "lucide-react";
 import { useEffect } from "react";
 
 const ListingDetailsModal = ({ listing, onClose }) => {
-    
+
+    const {getToken} = useAuth() 
     const currency = import.meta.env.VITE_CURRENCY || "$";
 
     useEffect(() => {
