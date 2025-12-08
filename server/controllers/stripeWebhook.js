@@ -38,7 +38,7 @@ export const stripeWebhook = async (request, response) => {
 
                 // Send new credentials to the buyer using the email address
                 await inngest.send({
-                  name: "app/purcahse",
+                  name: "app/purchase",
                   data: {transaction}
                 }) 
 

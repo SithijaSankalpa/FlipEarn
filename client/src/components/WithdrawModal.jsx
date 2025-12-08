@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import toast from 'react-hot-toast'
 import { useDispatch } from 'react-redux'
 import { getAllUserListings } from '../app/features/listingSlice'
+import api from '../configs/axios'
 
 const WithdrawModal = ({onClose}) => {
 

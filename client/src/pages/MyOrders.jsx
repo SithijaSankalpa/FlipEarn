@@ -20,13 +20,15 @@ const MyOrders = () => {
     try {
       setLoading(true)
       const token = await getToken();
-      const {data} = await api.get('/api/listing/user-orders', {headers: {
-        Authorization: `Bearer ${{token}}`
-      }})
+      const {data} = await api.get('/api/listing/user-orders', {
+        headers: {
+          Authorization: `Bearer ${token}`  // Fixed: removed extra curly braces
+        }
+      })
       setOrders(data.orders)
     } catch (error) {
       toast.error(error?.response?.data?.message || error.message);
-     
+      console.log(error);
     } finally {
       setLoading(false)
     }
@@ -152,7 +154,7 @@ const MyOrders = () => {
                 {isExpanded && (
                   <div className="mt-4 md:mt-0 pt-4">
                     <div className="space-y-2">
-                    {credential.updatedCredential.map((cred)=>(
+                    {credential?.updatedCredential?.map((cred)=>(
                       <div key={cred.name} className='flex items-center justify-between gap-3 bg-gray-50 rounded-md p-2'>
                          <div>
                           <p className="text-sm font-medium text-gray-800">{cred.name}</p>
@@ -171,7 +173,7 @@ const MyOrders = () => {
                           </button>
                          </div>
                       </div>
-                    ))}
+                    )) || <p className="text-sm text-gray-500">No credentials available</p>}
                     </div>
                   </div>
                 )}
