@@ -68,17 +68,20 @@ Note: Clerk requires its own server-side keys for auth; configure those per Cler
 ## Screenshots / Demo
 
 - Marketplace
-  ![Marketplace](client/public/marketplace.jpg)
-- Messages
-  ![Messages](client/public/message.jpg)
-- My Listings
-  ![My Listings](client/public/mylistings.jpg)
-- Orders
-  ![Orders](client/public/orders.jpg)
-- Pricing
-  ![Pricing](client/public/pricing.jpg)
+  <img width="1622" height="1082" alt="marketplace" src="https://github.com/user-attachments/assets/07d8035f-20e7-4434-ab97-194db30b7c1d" />
 
-Optional: link a short demo video or live preview.
+- Messages
+  <img width="826" height="745" alt="message" src="https://github.com/user-attachments/assets/8b868731-f923-4f1a-a70a-6509948a15de" />
+
+- My Listings
+  <img width="1600" height="856" alt="mylistings" src="https://github.com/user-attachments/assets/01171a0f-1f8b-47d8-b83a-5cc489ee908e" />
+
+- Orders
+  <img width="1661" height="297" alt="orders" src="https://github.com/user-attachments/assets/91b4cdb4-36cb-4190-8d49-e89b629d6661" />
+
+- Pricing
+  <img width="947" height="748" alt="pricing" src="https://github.com/user-attachments/assets/20061af9-b404-455e-ba6a-bfc566df64f7" />
+
 
 ## Production Setup
 
